@@ -5,7 +5,7 @@ import App from './App';
 const parser = require('socket.io-json-parser');
 
 const socket = openSocket(
-  process.env.REACT_APP_SERVER || 'http://localhost:4000',
+  `localhost:${process.env.REACT_APP_SERVER_PORT || 4000}`,
   { parser }
 );
 
