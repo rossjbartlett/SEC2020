@@ -38,7 +38,6 @@ function App({ socket }) {
   const [graph, setGraph] = useState(test_initial_graph); // todo []
   const [loglist, setLoglist] = useState(test_log); // todo []
   const [time, setTime] = useState(412); // todo 0
-  const [inputFile, setInputFile] = useState();
 
   useEffect(() => {
     socket.on('graph', g => setGraph(g));
@@ -55,7 +54,7 @@ function App({ socket }) {
     const formData = new FormData();
     const file = event.target.files[0]
     formData.append("file", file);
-    socket.emit('file', formData);    
+    socket.emit('input-file', formData);    
   }
 
   return (

@@ -2,7 +2,7 @@ const fs = require('fs');
 // console.log(result);
 
 function loadFile(fileName){
-    let contents = fs.readFileSync(fileName,"utf8");
+    let contents = fs.readFileSync(fileName);
 
     console.log(contents);
     let lines = contents.split('\n');

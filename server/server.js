@@ -2,19 +2,19 @@ const app = require('express')();
 const http = require('http').createServer(app);
 const parser = require('socket.io-json-parser');
 const io = require('socket.io')(http, { parser });
-const loadFile = require('./readfile.js');
+const {loadFile} = require('./readfile');
 
 let robot1Info = {
   charge: 100,
   id: 1,
-  position: 'K', // Start in kitchen
+  position: 0, // Start in kitchen
   currentOrder: undefined,
   timeElapsedAtCurrentPosition: 0
 }
 let robot2Info = {
   charge: 100,
   id: 2,
-  position: 'K', // Start in kitchen
+  position: 0, // Start in kitchen
   currentOrder: undefined,
   timeElapsedAtCurrentPosition: 0
 }
@@ -28,9 +28,8 @@ let restaurantSpecs = {};
 
 io.on('connection', socket => {
   socket.on('input-file', msg => {
-    // TODO: call antoines stuff and store objects.
-    // Make saved objects: restaurantSpecs, restaurantMap, orderList.
-    const { metaInf, resMap, orderList, linkList } = loadFile('input1.txt');
+    // TODO use msg to get the file from client
+    const { metaInf, resMap, orderList, linkList } = loadFile('./Input1.txt');
 
     graphicalMap = resMap;
     restaurantMap = linkList;
@@ -45,11 +44,9 @@ io.on('connection', socket => {
 
     updateGraphAndSendToClient(socket, restaurantSpecs, restaurantMap, orderList);
   });
-
   socket.on('restart', function () {
 
   });
-  
   socket.on('disconnect', () => { });
 });
 
@@ -63,8 +60,8 @@ const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orde
   // forEach order we will 'pass' off an order to a robot.
   // When a robot recieves an order, From wherever it is (will start at kitchen everytime would be expected) map out its next step wherever that is. Iterate until robot reaches destination, once there, iterate back to kitchen.
 
-  // TODO: We should determine accident collisions here, not every time the function is called
-  {  [robot1Info, robot2Info].forEach(robot => {
+  [robot1Info, robot2Info].forEach(robot => {
+
     if (robot.currentOrder == undefined) {
       const order = getNewOrder(orderList);
       robot.currentOrder = order;
@@ -87,11 +84,10 @@ const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orde
       });
     });
 
-    robot.timeElapsedAtCurrentPosition++;}
-
-    socket.emit('graph', graphicalMap);
-    socket.emit('text', "Hi Ross");
+    robot.timeElapsedAtCurrentPosition++;
   })
+  socket.emit('graph', graphicalMap);
+  socket.emit('test', "Hi Ross");
 }
 
 function getNewOrder(orderList) {
