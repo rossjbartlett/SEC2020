@@ -1,0 +1,111 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  color: white;
+}
+.flex {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.fill {
+  flex: 1 1
+}
+
+.fit {
+  flex: 0 1
+}
+
+.column {
+  flex-direction: column;
+}
+
+.display-row {
+  flex-direction: row;
+}
+
+.h-center {
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+}
+
+.h-left {
+  justify-content: flex-start;
+}
+
+.h-right {
+  justify-content: flex-end;
+}
+
+.v-center {
+  align-content: center;
+  align-items: center;
+}
+
+.v-top {
+  align-content: flex-start;
+}
+
+.v-bottom {
+  align-content: flex-end;
+}
+
+.vh-center {
+  @extend .h-center;
+  @extend .v-center;
+}
+
+.vh-left {
+  @extend .h-left;
+  @extend .v-center;
+}
+
+.vh-right {
+  @extend .h-right;
+  @extend .v-center;
+}
+
+#container {
+  // display: flex;
+  // height: 80vh;
+}
+#map {
+  background-color: red;
+}
+
+.tile {
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
+
+.tile:first-child {
+  border: 1px solid black;
+}
+
+.table {
+  border-radius: 30px;
+  background-color: brown;
+}
+
+#log {
+  background-color: blue; 
+  // height: 100vh;
+}
