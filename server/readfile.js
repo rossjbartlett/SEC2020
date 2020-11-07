@@ -1,5 +1,4 @@
 const fs = require('fs');
-const readline = require('readline');
 
 function loadFile(fileName){
     let contents = fs.readFileSync(fileName,"utf8");
@@ -24,13 +23,24 @@ function loadFile(fileName){
         let items = line.split(' ');
         if(items.length == 3){
             let order = items.map(i => parseInt(i));
+            // console.log(order);
+
             orderList.push(order);
         }
         else{
-            resMap.push(items);
+            for(let item of items){
+                if(item === 'K'){
+                    orderList,push({})
+                }
+                else if(item === 'A'){
+                }
+                else{
+                    console.log(item);
+                }
+            }
         }
     }
-    console.log(orderList);
+    // console.log(orderList);
 
     return {metaInf:metaInf, resMap:resMap, orderList:orderList};
 }

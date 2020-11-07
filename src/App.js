@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Map from './components/map/Map';
+import LogList from './components/log/LogList';
 import './App.scss';
 
 function renderTime(totalSeconds) {
@@ -11,8 +12,8 @@ function renderTime(totalSeconds) {
 
 const test_initial_graph = 
    [ // test, todo RM
-    [{tile: 'K', robots: [1, 2]}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}],
-    [{tile: '0', robots: []}, {tile: '0', robots: []}, {tile: 'A', robots: []}, {tile: '4', robots: []}, {tile: '0', robots: []}, {tile: '8', robots: []}, {tile: '0', robots: []}, {tile: '12', robots: []}],
+    [{tile: 'K', robots: [1]}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}],
+    [{tile: '0', robots: [2]}, {tile: '0', robots: []}, {tile: 'A', robots: []}, {tile: '4', robots: []}, {tile: '0', robots: []}, {tile: '8', robots: []}, {tile: '0', robots: []}, {tile: '12', robots: []}],
     [{tile: 'A', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}],
     [{tile: '0', robots: []}, {tile: '1', robots: []}, {tile: '0', robots: []}, {tile: '5', robots: []}, {tile: '0', robots: []}, {tile: '9', robots: []}, {tile: '0', robots: []}, {tile: '13', robots: []}],
     [{tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: 'A', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}],
@@ -40,10 +41,8 @@ function App({ socket }) {
     <div id='app'>
         <h1>Time: {renderTime(time)}</h1> 
       <div id='container' className="flex fill col-12 p-0">
-
         <Map graph={graph}/>
-        <div id='log' className="col-3 fill"></div>
-        {/* <LogList log={log}/> */}
+        <LogList log={log}/>
       </div>
     </div>
   );

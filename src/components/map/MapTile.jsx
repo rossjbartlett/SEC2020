@@ -17,9 +17,14 @@ function MapTile({ robotData, tileData, height, width }) {
     }
   }
 
+  const displayRobotData = (robotData) => {
+    return robotData.map(robotId => <i className={`fas fa-robot robot-${robotId}`}></i>)
+  }
+
   return (
     <div className="tile flex fill vh-center">
       {displayTileType(tileData)}
+      {displayRobotData(robotData)}      
     </div>
   );
 }
