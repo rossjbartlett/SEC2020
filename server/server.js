@@ -57,7 +57,7 @@ function loadFile(fileName){
     let linkList = [];
     for(let i=0; i<resMap.length; i++){
         for(let j=0; j<resMap[i].length; j++){
-            item = resMap[i][j];
+            const item = resMap[i][j];
             if(!isNaN(item.linkid)){
                 let linkid = item.linkid;
                 let accidentTime = 0;
@@ -163,23 +163,21 @@ const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orde
       robot.currentOrder = order;
     }
     const destPos = newRestMap.filter(value => value.adjacentTables.includes(robot.currentOrder[1]))[0];
-    console.log("Dest Position", destPos)
     const nextRobotPos = determineNextPosition(robot, destPos, newRestMap, restaurantSpecs);
-    console.log("Robot position", nextRobotPos);
     if (robot.timeElapsedAtCurrentPosition >= newRestMap.filter((value) => value.id == robot.position)[0]) {
       robot.position = nextRobotPos;
     }
 
-    graphicalMap.forEach((row, rowIndex) => {
-      row.forEach((col, colIndex) => {
-        if (robot.position == [rowIndex, colIndex]) {
-          col.robots.push(robot.id)
-        }
-        else {
-          col.robots = [];
-        }
-      });
-    });
+     graphicalMap.forEach((row, rowIndex) => {
+       row.forEach((col, colIndex) => {
+         if (robot.position == [rowIndex, colIndex]) {
+           col.robots.push(robot.id)
+         }
+         else {
+           col.robots = [];
+         }
+       });
+     });
 
     robot.timeElapsedAtCurrentPosition++;
   })
@@ -207,14 +205,14 @@ function determineNewAccidentAbilities(restaurantMap) {
   // for each accident node, if probability successful, set it to 'active' if no robots are in it.  
   return restaurantMap.map((value) => {
     if (!value.accidentActive && value.accidentTime > 0 && Math.random() < 0.3) {
-      newVal = Object.assign({}, value)
+      const newVal = Object.assign({}, value)
       newVal.netPassTime = value.passTime + value.accidentTime;
       newVal.accidentActive = true;
       newVal.accidentTimeAccrued = 0;
       return newVal
     }
     else if (value.accidentActive) {
-      newVal = Object.assign({}, value)
+      const newVal = Object.assign({}, value)
       // If the accident has been going on for long enough
       newVal.accidentTimeAccrued++;
       newVal.netPassTime = value.passTime + (value.accidentTime - value.accidentTimeAccrued);
@@ -237,6 +235,7 @@ function determineNextPosition(robot, destinationPosition, restaurantMap, restau
     previous[value.id] = undefined;
   });
   dist[robot.position] = restaurantSpecs.passTime - robot.timeElapsedAtCurrentPosition;
+
   while (ourMap.length > 0) {
     const { minId, minIndex } = smallestNodeInGraph(ourMap, dist);
     const neighbours = neighboursOfNode(ourMap, minId)
@@ -276,7 +275,7 @@ function smallestNodeInGraph(map, dist) {
 }
 
 function neighboursOfNode(map, linkId) {
-  vals = []
+  let vals = []
   map.forEach((value) => {
     if (value.id == linkId) {
       vals = value.adjacentLinks;
@@ -295,11 +294,12 @@ function neighboursOfNode(map, linkId) {
 
 function distanceBetween(idA, idB, restaurantMap, passTime) {
 
-  output = null
-  restaurantMap.forEach(({ id, netPassTime }) => {
-    if (id == idB) {
+  let output = null
+  restaurantMap.forEach(({ id, netPassTime}) => {
+    if(id == idB) {
       output = netPassTime;
     }
   })
-  return output
+  return output;
 }
+  
