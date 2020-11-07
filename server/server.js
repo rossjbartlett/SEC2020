@@ -3,6 +3,7 @@ const http = require('http').createServer(app);
 const parser = require('socket.io-json-parser');
 const io = require('socket.io')(http, { parser });
 const fs = require('fs');
+const { restart } = require('nodemon');
 
 function loadFile(fileName){
     let contents = fs.readFileSync('C:\\Workspaces\\SEC2020\\server\\Input1.txt', 'utf-8');
@@ -133,10 +134,10 @@ io.on('connection', socket => {
     const originalOrderList = orderList;
     restaurantSpecs = metaInf;
 
-    setTimeout(1000, function () {
+    setTimeout(() => {
       runTime++;
       updateGraphAndSendToClient(socket, restaurantSpecs, restaurantMap, orderList);
-    });
+    }, 1000);
 
     updateGraphAndSendToClient(socket, restaurantSpecs, restaurantMap, orderList);
   });
@@ -152,7 +153,7 @@ http.listen(process.env.PORT || 4000, () => {
 
 
 const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orderList) => {
-  restaurantMap = determineNewAccidentAbilities(restaurantMap);
+  const newRestMap = determineNewAccidentAbilities(restaurantMap);
   // forEach order we will 'pass' off an order to a robot.
   // When a robot recieves an order, From wherever it is (will start at kitchen everytime would be expected) map out its next step wherever that is. Iterate until robot reaches destination, once there, iterate back to kitchen.
 
@@ -162,10 +163,11 @@ const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orde
       const order = getNewOrder(orderList);
       robot.currentOrder = order;
     }
-    const destPos = restaurantMap.filter(value => value.adjacentTables.includes(robot.currentOrder.position))[0];
-    const nextRobotPos = determineNextPosition(robot, destPos, restaurantMap, restaurantSpecs);
+    console.log(newRestMap)
+    const destPos = newRestMap.filter(value => value.adjacentTables.includes(robot.currentOrder.position))[0];
+    const nextRobotPos = determineNextPosition(robot, destPos, newRestMap, restaurantSpecs);
 
-    if (robot.timeElapsedAtCurrentPosition >= restaurantMap.filter((value) => value.id == robot.position)[0]) {
+    if (robot.timeElapsedAtCurrentPosition >= newRestMap.filter((value) => value.id == robot.position)[0]) {
       robot.position = nextRobotPos;
     }
 
@@ -207,9 +209,9 @@ function determineNewAccidentAbilities(restaurantMap) {
 
     if (!value.accidentActive && value.accidentTime > 0 && Math.random() < 0.3) {
       newVal = {}
-      newVal[netPassTime] = value.passTime + value.accidentTime;
-      newVal[accidentActive] = true;
-      newVal[accidentTimeAccrued] = 0;
+      newVal.netPassTime = value.passTime + value.accidentTime;
+      newVal.accidentActive = true;
+      newVal.accidentTimeAccrued = 0;
       return newVal
     }
     else if (value.accidentActive) {
@@ -274,7 +276,8 @@ function smallestNodeInGraph(map, dist) {
 }
 
 function neighboursOfNode(map, linkId) {
-  map.forEach(function (value) {
+  map.forEach((value) => {
+    console.log(map)
     if (value.id == linkId) {
       return value.adjacentTables;
     }

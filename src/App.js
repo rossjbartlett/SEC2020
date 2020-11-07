@@ -43,11 +43,10 @@ function App({ socket }) {
     socket.on('graph', g => setGraph(g));
     socket.on('time', t => setTime(t));
     socket.on('log', l => setLoglist(l));
-    socket.on('test', t => console.log('TEST', t)); // TODO rm
   }, [socket]);
 
   const restart = () => {
-    socket.emit('restart')
+    socket.emit('input-file')
   }
 
   const handleInputFile = (event) => {
