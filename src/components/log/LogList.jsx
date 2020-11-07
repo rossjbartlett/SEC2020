@@ -5,7 +5,7 @@ function LogList({loglist}) {
   return (
     <div id='loglist' className="col-3 fill" >
         <h4>Log</h4>
-        {loglist.map(logItem => <LogListItem logItem={logItem}/>)}
+        {loglist.map((logItem, i) => <LogListItem key={i} logItem={logItem}/>)}
     </div>
   );
 }

@@ -18,7 +18,7 @@ function MapTile({ robotData, tileData, height, width }) {
   }
 
   const displayRobotData = (robotData) => {
-    return robotData.map(robotId => <i className={`fas fa-robot robot-${robotId}`}></i>)
+    return robotData.map(robotId => <i key={robotId} className={`fas fa-robot robot-${robotId}`}></i>)
   }
 
   return (

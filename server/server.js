@@ -6,7 +6,7 @@ const fs = require('fs');
 const { restart } = require('nodemon');
 
 function loadFile(fileName){
-    let contents = fs.readFileSync('C:\\Workspaces\\SEC2020\\server\\Input1.txt', 'utf-8');
+    let contents = fs.readFileSync('./server/Input1.txt', 'utf-8');
 
     console.log(contents);
     let lines = contents.split('\n');
@@ -156,17 +156,16 @@ const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orde
   const newRestMap = determineNewAccidentAbilities(restaurantMap);
   // forEach order we will 'pass' off an order to a robot.
   // When a robot recieves an order, From wherever it is (will start at kitchen everytime would be expected) map out its next step wherever that is. Iterate until robot reaches destination, once there, iterate back to kitchen.
-
   [robot1Info, robot2Info].forEach(robot => {
 
     if (robot.currentOrder == undefined) {
       const order = getNewOrder(orderList);
       robot.currentOrder = order;
     }
-    console.log(newRestMap)
-    const destPos = newRestMap.filter(value => value.adjacentTables.includes(robot.currentOrder.position))[0];
+    const destPos = newRestMap.filter(value => value.adjacentTables.includes(robot.currentOrder[1]))[0];
+    console.log("Dest Position", destPos)
     const nextRobotPos = determineNextPosition(robot, destPos, newRestMap, restaurantSpecs);
-
+    console.log("Robot position", nextRobotPos);
     if (robot.timeElapsedAtCurrentPosition >= newRestMap.filter((value) => value.id == robot.position)[0]) {
       robot.position = nextRobotPos;
     }
@@ -191,6 +190,7 @@ const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orde
 function getNewOrder(orderList) {
   let orderToReturn = [];
   let indexToRemove = -1;
+  console.log("Order length: " + orderList.length);
   orderList.forEach((order, index) => {
     if (order[0] + order[2] > runTime) {
       orderToReturn = order;
@@ -205,25 +205,26 @@ function getNewOrder(orderList) {
 function determineNewAccidentAbilities(restaurantMap) {
   // Go through restaurant map
   // for each accident node, if probability successful, set it to 'active' if no robots are in it.  
-  return restaurantMap.map((value, id, arr) => {
-
+  return restaurantMap.map((value) => {
     if (!value.accidentActive && value.accidentTime > 0 && Math.random() < 0.3) {
-      newVal = {}
+      newVal = Object.assign({}, value)
       newVal.netPassTime = value.passTime + value.accidentTime;
       newVal.accidentActive = true;
       newVal.accidentTimeAccrued = 0;
       return newVal
     }
     else if (value.accidentActive) {
+      newVal = Object.assign({}, value)
       // If the accident has been going on for long enough
-      value.accidentTimeAccrued++;
-      value.netPassTime = value.passTime + (value.accidentTime - value.accidentTimeAccrued);
+      newVal.accidentTimeAccrued++;
+      newVal.netPassTime = value.passTime + (value.accidentTime - value.accidentTimeAccrued);
       if (value.accidentTimeAccrued >= value.netPassTime) {
-        value.accidentActive = false;
-        value.netPassTime = value.passTime;
+        newVal.accidentActive = false;
+        newVal.netPassTime = value.passTime;
       }
+      return newVal
     }
-    return value
+    return Object.assign({}, value);
   });
 }
 
@@ -231,19 +232,17 @@ function determineNextPosition(robot, destinationPosition, restaurantMap, restau
   const ourMap = Object.assign([], restaurantMap);
   const dist = {};
   const previous = {};
-  restaurantMap = restaurantMap.map((value, index, array) => {
-    dist[value.id] = (Infinity);
-    previous[value.id] = (undefined);
+  restaurantMap.forEach((value, index, array) => {
+    dist[value.id] = Infinity;
+    previous[value.id] = undefined;
   });
-
-  dist[robot.robotPosition] = restaurantSpecs.passTime - robot.timeElapsedAtCurrentPosition;
+  dist[robot.position] = restaurantSpecs.passTime - robot.timeElapsedAtCurrentPosition;
   while (ourMap.length > 0) {
     const { minId, minIndex } = smallestNodeInGraph(ourMap, dist);
-    ourMap.splice(minIndex, 1);
-
-    neighboursOfNode(restaurantMap, minId)
-      .forEach((idOfAdjacent) => {
-        let alt = dist[minId] + distanceBetween(minId, idOfAdjacent, restaurantSpecs.passTime);
+    const neighbours = neighboursOfNode(ourMap, minId)
+    ourMap.splice(minIndex);
+    neighbours.forEach((idOfAdjacent) => {
+        let alt = dist[minId] + distanceBetween(minId, idOfAdjacent, ourMap, restaurantSpecs.passTime);
         if (alt < dist[idOfAdjacent]) {
           dist[idOfAdjacent] = alt;
           previous[idOfAdjacent] = minId;
@@ -252,12 +251,13 @@ function determineNextPosition(robot, destinationPosition, restaurantMap, restau
   }
 
   // At this point, we should be able to take the previous array and determine the next position the robot should move by finding the id of previous[id] == robotPosition.
-  let targetIndex = destinationPosition;
-  while(previous[targetId] != robot.position)
+  let targetIndex = destinationPosition.id;
+  console.log(previous);
+  while(previous[targetIndex] != robot.position && previous[targetIndex] != undefined)
   {
-    targetId = previous[targetId];
+    // console.log(targetIndex)
+    targetIndex = previous[targetIndex];
   }
-
   return targetIndex;
 }
 
@@ -265,23 +265,24 @@ function smallestNodeInGraph(map, dist) {
   let minDist = Infinity
   let minIndex = -1;
   let minId = -1
-
   map.forEach(({ id }, index) => {
     if (dist[id] < minDist) {
       minDist = dist[id];
       minIndex = index;
+      minId = id;
     }
   })
   return { minId, minIndex };
 }
 
 function neighboursOfNode(map, linkId) {
+  vals = []
   map.forEach((value) => {
-    console.log(map)
     if (value.id == linkId) {
-      return value.adjacentTables;
+      vals = value.adjacentLinks;
     }
   })
+  return vals
 }
 
 // { linkid: 0,
@@ -294,9 +295,11 @@ function neighboursOfNode(map, linkId) {
 
 function distanceBetween(idA, idB, restaurantMap, passTime) {
 
-  return restaurantMap.forEach(({ id, netPassTime }) => {
+  output = null
+  restaurantMap.forEach(({ id, netPassTime }) => {
     if (id == idB) {
-      return netPassTime;
+      output = netPassTime;
     }
   })
+  return output
 }
