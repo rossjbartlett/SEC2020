@@ -11,32 +11,25 @@ function renderTime(totalSeconds) {
 
 const test_initial_graph = 
    [ // test, todo RM
-    ['K', 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 'A', 4, 0, 8, 0, 12],
-    ['A', 0, 0, 0, 0, 0, 'A', 0],
-    [0, 1, 0, 5, 0, 9, 0, 13],
-    [0, 0, 0, 0, 0, 'A', 0, 0],
-    [0, 2, 'A', 6, 0, 0, 0, 14],
-    [0, 0, 0, 0, 0, 0, 'A', 0],
-    [0, 3, 0, 7, 0, 1, 0, 15]
+    [{tile: 'K', robots: [1, 2]}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}],
+    [{tile: '0', robots: []}, {tile: '0', robots: []}, {tile: 'A', robots: []}, {tile: '4', robots: []}, {tile: '0', robots: []}, {tile: '8', robots: []}, {tile: '0', robots: []}, {tile: '12', robots: []}],
+    [{tile: 'A', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}],
+    [{tile: '0', robots: []}, {tile: '1', robots: []}, {tile: '0', robots: []}, {tile: '5', robots: []}, {tile: '0', robots: []}, {tile: '9', robots: []}, {tile: '0', robots: []}, {tile: '13', robots: []}],
+    [{tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: 'A', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}],
+    [{tile: '0', robots: []}, {tile: '2', robots: []}, {tile: 'A', robots: []}, {tile: '6', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '14', robots: []}],
+    [{tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: '0', robots: []}, {tile: 'A', robots: []}, {tile: '0', robots: []}],
+    [{tile: '0', robots: []}, {tile: '3', robots: []}, {tile: '0', robots: []}, {tile: '7', robots: []}, {tile: '0', robots: []}, {tile: '1', robots: []}, {tile: '0', robots: []}, {tile: '15', robots: []}]
   ]
 
 function App({ socket }) {
-  const [initialGraph, setInitialGraph] = useState(test_initial_graph);
-  const [graph, setGraph] = useState([]);
+  const [graph, setGraph] = useState(test_initial_graph); // todo []
   const [log, setLog] = useState([]);
   const [time, setTime] = useState(412); // todo 0
 
   useEffect(() => {
-    socket.on('graph', function (g) {
-      setGraph(g);
-    });
-    socket.on('time', function (t) {
-      setTime(t);
-    });
-    socket.on('log', function (l) {
-      setLog(l);
-    });
+    socket.on('graph', g => setGraph(g));
+    socket.on('time', t => setTime(t));
+    socket.on('log', l => setLog(l));
   }, [socket]);
 
   function handleSend(e) {
@@ -48,7 +41,7 @@ function App({ socket }) {
         <h1>Time: {renderTime(time)}</h1> 
       <div id='container' className="flex fill col-12 p-0">
 
-        <Map graph={graph} initialGraph={initialGraph}/>
+        <Map graph={graph}/>
         <div id='log' className="col-3 fill"></div>
         {/* <LogList log={log}/> */}
       </div>

@@ -14,7 +14,8 @@
     "react-scripts": "3.4.3",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.1",
-    "socket.io-json-parser": "^2.1.1"
+    "socket.io-json-parser": "^2.1.1",
+    "uuid": "^8.3.1"
   },
   "scripts": {
     "start": "react-scripts start --no-cache",

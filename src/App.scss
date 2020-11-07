@@ -2,9 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Roboto';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -87,13 +85,14 @@
   // height: 80vh;
 }
 #map {
-  background-color: red;
+  background-color: white;
 }
 
 .tile {
   border-right: 1px solid black;
   border-bottom: 1px solid black;
   border-top: 1px solid black;
+  margin:0;
 }
 
 .tile:first-child {
@@ -101,11 +100,19 @@
 }
 
 .table {
-  border-radius: 30px;
+  border-radius: 50px;
   background-color: brown;
+  height: 80%;
+  color: white;
+  margin: 0;
+  font-size: 18px;
 }
 
 #log {
-  background-color: blue; 
-  // height: 100vh;
+  background-color: darkgrey;   
+}
+
+.fas {
+  color: black;
+  font-size: 50px;
 }
