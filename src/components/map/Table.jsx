@@ -8,4 +8,4 @@ function Table({id}) {
   );
 }
 
-export default Tablet
+export default Table

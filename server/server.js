@@ -2,32 +2,41 @@ const app = require('express')();
 const http = require('http').createServer(app);
 const parser = require('socket.io-json-parser');
 const io = require('socket.io')(http, { parser });
+const loadFile = require('./readfile.js');
 
 let robot1Info = {
   charge: 100,
+  id: 1,
   position: 'K', // Start in kitchen
   currentOrder: undefined,
   timeElapsedAtCurrentPosition: 0
 }
 let robot2Info = {
   charge: 100,
+  id: 2,
   position: 'K', // Start in kitchen
   currentOrder: undefined,
   timeElapsedAtCurrentPosition: 0
 }
 
 let runTime = 0;
-
+let graphicalMap = [];
+let restaurantMap = [];
+const originalOrderList = [];
+let orderList = [];
+let restaurantSpecs = {};
 
 io.on('connection', socket => {
-  socket.on('request', msg => {
-    const response = msg.toUpperCase();
-    socket.emit('response', response);
-  });
-
   socket.on('input-file', msg => {
     // TODO: call antoines stuff and store objects.
     // Make saved objects: restaurantSpecs, restaurantMap, orderList.
+    const { metaInf, resMap, orderList, linkList } = loadFile('input1.txt');
+
+    graphicalMap = resMap;
+    restaurantMap = linkList;
+    originalOrderList = orderList;
+    orderList = orderList;
+    restaurantSpecs = metaInf;
 
     setTimeout(1000, function () {
       runTime++;
@@ -36,9 +45,11 @@ io.on('connection', socket => {
 
     updateGraphAndSendToClient(socket, restaurantSpecs, restaurantMap, orderList);
   });
+
   socket.on('restart', function () {
 
   });
+  
   socket.on('disconnect', () => { });
 });
 
@@ -53,7 +64,7 @@ const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orde
   // When a robot recieves an order, From wherever it is (will start at kitchen everytime would be expected) map out its next step wherever that is. Iterate until robot reaches destination, once there, iterate back to kitchen.
 
   // TODO: We should determine accident collisions here, not every time the function is called
-  [robot1Info, robot2Info].forEach(robot => {
+  {  [robot1Info, robot2Info].forEach(robot => {
     if (robot.currentOrder == undefined) {
       const order = getNewOrder(orderList);
       robot.currentOrder = order;
@@ -61,9 +72,40 @@ const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orde
     const destPos = restaurantMap.filter(value => value.adjacentTables.includes(robot.currentOrder.position))[0];
     const nextRobotPos = determineNextPosition(robot, destPos, restaurantMap, restaurantSpecs);
 
+    if (robot.timeElapsedAtCurrentPosition >= restaurantMap.filter((value) => value.id == robot.position)[0]) {
+      robot.position = nextRobotPos;
+    }
 
-    // TODO: Make DISPLAY
+    graphicalMap.forEach((row, rowIndex) => {
+      row.forEach((col, colIndex) => {
+        if (robot.position == [rowIndex, colIndex]) {
+          col.robots.push(robot.id)
+        }
+        else {
+          col.robots = [];
+        }
+      });
+    });
+
+    robot.timeElapsedAtCurrentPosition++;}
+
+    socket.emit('graph', graphicalMap);
+    socket.emit('text', "Hi Ross");
   })
+}
+
+function getNewOrder(orderList) {
+  let orderToReturn = [];
+  let indexToRemove = -1;
+  orderList.forEach((order, index) => {
+    if (order[0] + order[2] > runTime) {
+      orderToReturn = order;
+      indexToRemove = index;
+    }
+  })
+
+  orderList.splice(indexToRemove, 1);
+  return orderToReturn;
 }
 
 function determineNewAccidentAbilities(restaurantMap) {
@@ -102,21 +144,27 @@ function determineNextPosition(robot, destinationPosition, restaurantMap, restau
 
   dist[robot.robotPosition] = restaurantSpecs.passTime - robot.timeElapsedAtCurrentPosition;
   while (ourMap.length > 0) {
-    const {minId, minIndex} = smallestNodeInGraph(ourMap, dist);
+    const { minId, minIndex } = smallestNodeInGraph(ourMap, dist);
     ourMap.splice(minIndex, 1);
-    
+
     neighboursOfNode(restaurantMap, minId)
-    .forEach((idOfAdjacent) => {
-      let alt = dist[minId] + distanceBetween(minId, idOfAdjacent, restaurantSpecs.passTime);
-      if (alt < dist[idOfAdjacent]) {
-        dist[idOfAdjacent] = alt;
-        previous[idOfAdjacent] = minId;
-      }
-    });
-
+      .forEach((idOfAdjacent) => {
+        let alt = dist[minId] + distanceBetween(minId, idOfAdjacent, restaurantSpecs.passTime);
+        if (alt < dist[idOfAdjacent]) {
+          dist[idOfAdjacent] = alt;
+          previous[idOfAdjacent] = minId;
+        }
+      });
   }
-  // At this point, we should be able to take the previous array and determine the next position the robot should move by finding the id of previous[id] == robotPosition.
 
+  // At this point, we should be able to take the previous array and determine the next position the robot should move by finding the id of previous[id] == robotPosition.
+  let targetIndex = destinationPosition;
+  while(previous[targetId] != robot.position)
+  {
+    targetId = previous[targetId];
+  }
+
+  return targetIndex;
 }
 
 function smallestNodeInGraph(map, dist) {
@@ -124,13 +172,13 @@ function smallestNodeInGraph(map, dist) {
   let minIndex = -1;
   let minId = -1
 
-  map.forEach(({id}, index) => {
-    if(dist[id] < minDist) {
-      minDist = dist[id];      
+  map.forEach(({ id }, index) => {
+    if (dist[id] < minDist) {
+      minDist = dist[id];
       minIndex = index;
     }
   })
-  return {minId, minIndex};
+  return { minId, minIndex };
 }
 
 function neighboursOfNode(map, linkId) {
@@ -151,9 +199,8 @@ function neighboursOfNode(map, linkId) {
 
 function distanceBetween(idA, idB, restaurantMap, passTime) {
 
-  return restaurantMap.forEach(({id, netPassTime}) => {
-    if(id == idB)
-    {
+  return restaurantMap.forEach(({ id, netPassTime }) => {
+    if (id == idB) {
       return netPassTime;
     }
   })

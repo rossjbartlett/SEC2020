@@ -1,6 +1,4 @@
 const fs = require('fs');
-
-result = loadFile('Input2.txt');
 // console.log(result);
 
 function loadFile(fileName){
@@ -101,5 +99,6 @@ function getAdjacentNodes(i, j, resMap){
     return adjacentNodes;
 }
 
-
-
+module.exports = {
+    loadFile
+}

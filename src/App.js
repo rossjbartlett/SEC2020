@@ -38,36 +38,46 @@ function App({ socket }) {
   const [graph, setGraph] = useState(test_initial_graph); // todo []
   const [loglist, setLoglist] = useState(test_log); // todo []
   const [time, setTime] = useState(412); // todo 0
+  const [inputFile, setInputFile] = useState();
 
   useEffect(() => {
     socket.on('graph', g => setGraph(g));
     socket.on('time', t => setTime(t));
     socket.on('log', l => setLoglist(l));
+    socket.on('test', t => console.log('TEST', t)); // TODO rm
   }, [socket]);
 
   const restart = () => {
     socket.emit('restart')
   }
 
+  const handleInputFile = (event) => {
+    const formData = new FormData();
+    const file = event.target.files[0]
+    formData.append("file", file);
+    socket.emit('file', formData);    
+  }
+
   return (
     <div id='app'>
-      <div id ='header' className="col-12 p-0 flex">
-        <button style={{ fontSize: 25, cursor: "pointer" }}
-          className="btn btn-primary float-left col-2"
+      <div id ='header' className='col-12 p-0 flex'>
+        <button 
+        style={{ fontSize: 25, cursor: 'pointer' }}
+          className='btn btn-primary float-left col-2'
           onClick={restart}>
           Restart
-        <i class="pl-2 fas fa-undo" style={{ color: 'blue', fontSize: 25 }}></i>
+          <i className='pl-2 fas fa-undo' 
+          style={{ color: 'blue', fontSize: 25 }}
+          />
         </button>
-        <div className="row flex col-10 p-0 vh-center">
+        <div className='row flex col-8 p-0 vh-center'>
           <h1>Time: {renderTime(time)}</h1>
         </div>
-        <div id='filepicker'>
-          <input type="file"
-                id="inputFile" name="inputFile"
-                accept=".txt, .dat"/>
+        <div id='filepicker' className='row flex col-2 p-0 vh-center'>
+          <input type='file' name='inputFile' accept='.txt, .dat' onChange={handleInputFile}/>
         </div>
       </div>
-      <div id='container' className="flex fill col-12 p-0">
+      <div id='container' className='flex fill col-12 p-0'>
         <Map graph={graph} />
         <LogList loglist={loglist} />
       </div>
