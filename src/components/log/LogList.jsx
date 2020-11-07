@@ -1,9 +1,11 @@
 import React from 'react';
+import LogListItem from './LogListItem';
 
-function LogList({id}) {
+function LogList({loglist}) {
   return (
     <div id='loglist' className="col-3 fill" >
-        LogList
+        <h4>Log</h4>
+        {loglist.map(logItem => <LogListItem logItem={logItem}/>)}
     </div>
   );
 }

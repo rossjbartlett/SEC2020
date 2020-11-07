@@ -7,9 +7,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  overflow: hidden;
+}
+
 #app {
   background-color: #282c34;
   min-height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -17,6 +22,11 @@
   font-size: 16px;
   color: white;
 }
+
+h1 {
+  margin: 0;
+}
+
 .flex {
   display: flex;
   flex-wrap: wrap;
@@ -80,6 +90,10 @@
   @extend .v-center;
 }
 
+#header {
+  border-bottom: 1px solid white;
+}
+
 #container {
   // display: flex;
   // height: 80vh;
@@ -104,12 +118,9 @@
   background-color: brown;
   height: 80%;
   color: white;
-  margin: 0;
+  margin: 2%;
   font-size: 18px;
-}
-
-#loglist {
-  background-color: darkgrey;   
+  text-align: center;
 }
 
 .fas {
@@ -123,4 +134,44 @@
 
 .robot-2 {
   color: #1BAF9E
+}
+
+#loglist {
+  padding: 10px;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  max-height: 94.5vh;
+}
+
+#loglist h4 {
+    background-color: #282C35;
+    width: 100%;
+    position: sticky;
+    text-align: center;
+    top: 0;
+    padding: 10px;
+}
+
+.loglistitem {
+  color: black;
+  background-color: white;
+  width: 90%;
+  margin: 10px 0;
+  padding: 10px;
+  justify-content: space-between;
+  border-radius: 20px;
+}
+
+.loglistitem p {
+  margin: 0
+}
+
+.logtime {
+  font-size: small;
+}
+.loginfo {
+  
 }

@@ -19,70 +19,98 @@ let robot2Info = {
 let runTime = 0;
 
 
-io.on('connection', socket =>
-{
-  socket.on('request', msg =>
-  {
+io.on('connection', socket => {
+  socket.on('request', msg => {
     const response = msg.toUpperCase();
     socket.emit('response', response);
+  });
+
+  socket.on('input-file', msg => {
+    // TODO: call antoines stuff and store objects.
+    // Make saved objects: restaurantSpecs, restaurantMap, orderList.
+
+    setTimeout(1000, function () {
+      runTime++;
+      updateGraphAndSendToClient(socket, restaurantSpecs, restaurantMap, orderList);
+    });
+
+    updateGraphAndSendToClient(socket, restaurantSpecs, restaurantMap, orderList);
+  });
+  socket.on('restart', function () {
+
   });
   socket.on('disconnect', () => { });
 });
 
-http.listen(process.env.PORT || 4000, () =>
-{
+http.listen(process.env.PORT || 4000, () => {
   console.log('listening on:', http.address());
 });
 
 
-function updateGraphAndSendToClient(socket, restaurantSpecs, restaurantMap, orderList)
-{
+const updateGraphAndSendToClient = (socket, restaurantSpecs, restaurantMap, orderList) => {
+  restaurantMap = determineNewAccidentAbilities(restaurantMap);
   // forEach order we will 'pass' off an order to a robot.
   // When a robot recieves an order, From wherever it is (will start at kitchen everytime would be expected) map out its next step wherever that is. Iterate until robot reaches destination, once there, iterate back to kitchen.
-  if (robot1Info.currentOrder == undefined)
-  {
-    // Give a new order to robot
-    let order = getNewOrder(orderList);
-    robot1Info.currentOrder = order;
-  }
-  let destinationPosition = restaurantMap.filter(function (value) { return value.adjacentTables.includes(robot1Info.currentOrder.position); });
 
-  let nextPosition = determineNextPosition(robot1.position, destinationPosition, restaurantMap, restaurantSpecs);
+  // TODO: We should determine accident collisions here, not every time the function is called
+  [robot1Info, robot2Info].forEach(robot => {
+    if (robot.currentOrder == undefined) {
+      const order = getNewOrder(orderList);
+      robot.currentOrder = order;
+    }
+    const destPos = restaurantMap.filter(value => value.adjacentTables.includes(robot.currentOrder.position))[0];
+    const nextRobotPos = determineNextPosition(robot, destPos, restaurantMap, restaurantSpecs);
 
-  // Now update everything for robot 1 since we know it is where it needs to go.
 
+    // TODO: Make DISPLAY
+  })
 }
 
-function determineNextPosition(robotPosition, destinationPosition, restaurantMap, restaurantSpecs)
-{
-  let ourMap = restaurantMap;
-  let dist = new Array(restaurantMap.length);
-  let previous = new Array(restaurantMap.length);
-  restaurantMap.forEach(function (value, index, array)
-  {
-    dist[value.id] = 9999999;
-    previous[value.id] = undefined;
+function determineNewAccidentAbilities(restaurantMap) {
+  // Go through restaurant map
+  // for each accident node, if probability successful, set it to 'active' if no robots are in it.  
+  return restaurantMap.map((value, id, arr) => {
+
+    if (!value.accidentActive && value.accidentTime > 0 && Math.random() < 0.3) {
+      newVal = {}
+      newVal[netPassTime] = value.passTime + value.accidentTime;
+      newVal[accidentActive] = true;
+      newVal[accidentTimeAccrued] = 0;
+      return newVal
+    }
+    else if (value.accidentActive) {
+      // If the accident has been going on for long enough
+      value.accidentTimeAccrued++;
+      value.netPassTime = value.passTime + (value.accidentTime - value.accidentTimeAccrued);
+      if (value.accidentTimeAccrued >= value.netPassTime) {
+        value.accidentActive = false;
+        value.netPassTime = value.passTime;
+      }
+    }
+    return value
+  });
+}
+
+function determineNextPosition(robot, destinationPosition, restaurantMap, restaurantSpecs) {
+  const ourMap = Object.assign([], restaurantMap);
+  const dist = {};
+  const previous = {};
+  restaurantMap = restaurantMap.map((value, index, array) => {
+    dist[value.id] = (Infinity);
+    previous[value.id] = (undefined);
   });
 
-  dist[robotPosition] = restaurantSpecs.passTime;
-  while (ourMap.length > 0)
-  {
-    let mapLinkId = smallestNodeInGraph(ourMap, dist);
-    ourMap = ourMap.filter(function (value)
-    {
-      if (value.id != mapLinkId)
-      {
-        return true;
-      }
-      return false;
-    });
-    neighboursOfNode(restaurantMap, mapLinkId).forEach(function (idOfAdjacent)
-    {
-      let alt = dist[mapLinkId] + distanceBetween(mapLinkId, idOfAdjacent, restaurantSpecs.passTime);
-      if (alt < dist[idOfAdjacent])
-      {
+  dist[robot.robotPosition] = restaurantSpecs.passTime - robot.timeElapsedAtCurrentPosition;
+  while (ourMap.length > 0) {
+    const {minId, minIndex} = smallestNodeInGraph(ourMap, dist);
+    ourMap.splice(minIndex, 1);
+    
+    neighboursOfNode(restaurantMap, minId)
+    .forEach((idOfAdjacent) => {
+      let alt = dist[minId] + distanceBetween(minId, idOfAdjacent, restaurantSpecs.passTime);
+      if (alt < dist[idOfAdjacent]) {
         dist[idOfAdjacent] = alt;
-        previous[idOfAdjacent] = mapLinkId;
+        previous[idOfAdjacent] = minId;
       }
     });
 
@@ -91,51 +119,42 @@ function determineNextPosition(robotPosition, destinationPosition, restaurantMap
 
 }
 
-function neighboursOfNode(map, linkId)
-{
-  map.forEach(function (value)
-  {
-    if (value.id == linkId)
-    {
+function smallestNodeInGraph(map, dist) {
+  let minDist = Infinity
+  let minIndex = -1;
+  let minId = -1
+
+  map.forEach(({id}, index) => {
+    if(dist[id] < minDist) {
+      minDist = dist[id];      
+      minIndex = index;
+    }
+  })
+  return {minId, minIndex};
+}
+
+function neighboursOfNode(map, linkId) {
+  map.forEach(function (value) {
+    if (value.id == linkId) {
       return value.adjacentTables;
     }
   })
 }
 
-function distanceBetween(idA, idB, restaurantMap, passTime)
-{
-  restaurantMap.forEach(function (value)
-  {
-    if (value.id == idA)
-    {
-      // To calc the distance between two nodes, we somehow have to say if a robot is not there time = accidentTime * accident? + passTime;
-      let time = passTime;
-      if (value.numRobots == 0)
-      {
-        let randomChance = Math.random() * 10;
-        if (randomChance < 3)
-        {
-          // At this point, we know an accident is going to occur.
-          restaurantMap.forEach(function (value, id, arr)
-          {
-            if (value.id == idB)
-            {
-              if (restaurantMap[id].accidentTimeElapsed == undefined)
-              {
-                time += restaurantMap[id].accidentTime;
-                restaurantMap[id].accidentTimeElapsed = 0;
-              }
-              else
-              {
-                time += restaurantMap[id].accidentTimeElapsed;
-              }
-            }
-          });
-        }
-      }
-      return time;
-    };
+// { linkid: 0,
+//   accidentTime: 0,
+//   adjacentTables: [],
+//   netPassTime: [],
+//   accidentActive = true,
+//   accidentTimeAccrued = 0,
+//   adjacentLinks: [ 8, 1 ] }
 
+function distanceBetween(idA, idB, restaurantMap, passTime) {
+
+  return restaurantMap.forEach(({id, netPassTime}) => {
+    if(id == idB)
+    {
+      return netPassTime;
+    }
   })
-  return 100000;  // This should hopefully account for any errors should we get here.
 }
