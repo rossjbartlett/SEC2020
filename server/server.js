@@ -5,7 +5,7 @@ const io = require('socket.io')(http, { parser });
 const fs = require('fs');
 
 function loadFile(fileName){
-    let contents = fs.readFileSync(fileName);
+    let contents = fs.readFileSync('C:\\Workspaces\\SEC2020\\server\\Input1.txt', 'utf-8');
 
     console.log(contents);
     let lines = contents.split('\n');
@@ -130,8 +130,7 @@ io.on('connection', socket => {
 
     graphicalMap = resMap;
     restaurantMap = linkList;
-    originalOrderList = orderList;
-    orderList = orderList;
+    const originalOrderList = orderList;
     restaurantSpecs = metaInf;
 
     setTimeout(1000, function () {
